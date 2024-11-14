@@ -15,6 +15,7 @@
 #define IN4 5
 #define ENA 6
 #define ENB 7
+int speed = 255;
 
 // BUILT-IN LED
 #define BLINK_INTERVAL 300
@@ -34,32 +35,17 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENA, 255);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENB, 255);
+  fordward();
   delay(5000);
 
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  analogWrite(ENA, 128);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENB, 128);
-  delay(5000);
-
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENA, 0);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENB, 0);
+  stop();
   delay(1000);
+
+  backward();
+  delay(5000);
+
+  stop();
+  delay(2000);
 }
 
 void L298N_setup() {
@@ -71,4 +57,34 @@ void L298N_setup() {
   pinMode(IN4, OUTPUT);
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
+}
+
+void backward() {
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, speed);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENB, speed);
+}
+
+void fordward() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  analogWrite(ENA, speed);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, speed);
+}
+
+void stop() {
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 0);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENB, 0);
 }
