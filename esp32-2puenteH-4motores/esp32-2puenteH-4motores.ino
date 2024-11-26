@@ -10,6 +10,46 @@ struct L298N {
   int ENB;
   int IN3;
   int IN4;
+
+  void setup(int freq, int resolution, int pwmChannel) {
+    pinMode(ENA, OUTPUT);
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
+    pinMode(ENB, OUTPUT);
+    pinMode(IN3, OUTPUT);
+    pinMode(IN4, OUTPUT);
+
+    // configure LEDC PWM
+    ledcAttachChannel(ENA, freq, resolution, pwmChannel);
+    ledcAttachChannel(ENB, freq, resolution, pwmChannel);
+  }
+
+  void forward(int speed) {
+    ledcWrite(ENA, speed);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    ledcWrite(ENB, speed);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+  }
+
+  void backward(int speed) {
+    ledcWrite(ENA, speed);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    ledcWrite(ENB, speed);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+  }
+
+  void stop() {
+    digitalWrite(ENA, LOW);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(ENB, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+  }
 };
 
 // H-BRIDGE 1 PINS
@@ -77,26 +117,8 @@ void loop() {
 void L298N_setup() {
   Serial.println("==> L298N setup");
 
-  // H-BRIDGE 1 PINS
-  pinMode(HB1.ENA, OUTPUT);
-  pinMode(HB1.IN1, OUTPUT);
-  pinMode(HB1.IN2, OUTPUT);
-  pinMode(HB1.ENB, OUTPUT);
-  pinMode(HB1.IN3, OUTPUT);
-  pinMode(HB1.IN4, OUTPUT);
-  // H-BRIDGE 2 PINS
-  pinMode(HB2.ENA, OUTPUT);
-  pinMode(HB2.IN1, OUTPUT);
-  pinMode(HB2.IN2, OUTPUT);
-  pinMode(HB2.ENB, OUTPUT);
-  pinMode(HB2.IN3, OUTPUT);
-  pinMode(HB2.IN4, OUTPUT);
-
-  // configure LEDC PWM
-  ledcAttachChannel(HB1.ENA, freq, resolution, pwmChannel);
-  ledcAttachChannel(HB1.ENB, freq, resolution, pwmChannel);
-  ledcAttachChannel(HB2.ENA, freq, resolution, pwmChannel);
-  ledcAttachChannel(HB2.ENB, freq, resolution, pwmChannel);
+  HB1.setup(freq, resolution, pwmChannel);
+  HB2.setup(freq, resolution, pwmChannel);
 
   Serial.println("==> L298N setup completed");
 }
@@ -104,99 +126,35 @@ void L298N_setup() {
 void forward() {
   Serial.println("Moving forward");
 
-  // H-BRIDGE 1
-  ledcWrite(HB1.ENA, speed);
-  digitalWrite(HB1.IN1, LOW);
-  digitalWrite(HB1.IN2, HIGH);
-  ledcWrite(HB1.ENB, speed);
-  digitalWrite(HB1.IN3, LOW);
-  digitalWrite(HB1.IN4, HIGH);
-
-  // H-BRIDGE 2
-  ledcWrite(HB2.ENA, speed);
-  digitalWrite(HB2.IN1, LOW);
-  digitalWrite(HB2.IN2, HIGH);
-  ledcWrite(HB2.ENB, speed);
-  digitalWrite(HB2.IN3, LOW);
-  digitalWrite(HB2.IN4, HIGH);
+  HB1.forward(speed);
+  HB2.forward(speed);
 }
 
 void backwards() {
   Serial.println("Moving backwards");
 
-  // H-BRIDGE 1
-  ledcWrite(HB1.ENA, speed);
-  digitalWrite(HB1.IN1, HIGH);
-  digitalWrite(HB1.IN2, LOW);
-  ledcWrite(HB1.ENB, speed);
-  digitalWrite(HB1.IN3, HIGH);
-  digitalWrite(HB1.IN4, LOW);
-
-  // H-BRIDGE 2
-  ledcWrite(HB2.ENA, speed);
-  digitalWrite(HB2.IN1, HIGH);
-  digitalWrite(HB2.IN2, LOW);
-  ledcWrite(HB2.ENB, speed);
-  digitalWrite(HB2.IN3, HIGH);
-  digitalWrite(HB2.IN4, LOW);
+  HB1.backward(speed);
+  HB2.backward(speed);
 }
 
 void stop() {
   Serial.println("stoping");
 
   // H-BRIDGE 1
-  digitalWrite(HB1.ENA, LOW);
-  digitalWrite(HB1.IN1, LOW);
-  digitalWrite(HB1.IN2, LOW);
-  digitalWrite(HB1.ENB, LOW);
-  digitalWrite(HB1.IN3, LOW);
-  digitalWrite(HB1.IN4, LOW);
-
-  // H-BRIDGE 2
-  digitalWrite(HB2.ENA, LOW);
-  digitalWrite(HB2.IN1, LOW);
-  digitalWrite(HB2.IN2, LOW);
-  digitalWrite(HB2.ENB, LOW);
-  digitalWrite(HB2.IN3, LOW);
-  digitalWrite(HB2.IN4, LOW);
+  HB1.stop();
+  HB2.stop();
 }
 
 void left() {
   Serial.println("Moving left");
 
-  // H-BRIDGE 1
-  ledcWrite(HB1.ENA, speed);
-  digitalWrite(HB1.IN1, LOW);
-  digitalWrite(HB1.IN2, HIGH);
-  ledcWrite(HB1.ENB, speed);
-  digitalWrite(HB1.IN3, LOW);
-  digitalWrite(HB1.IN4, LOW);
-
-  // H-BRIDGE 2
-  ledcWrite(HB2.ENA, speed);
-  digitalWrite(HB2.IN1, LOW);
-  digitalWrite(HB2.IN2, HIGH);
-  ledcWrite(HB2.ENB, speed);
-  digitalWrite(HB2.IN3, HIGH);
-  digitalWrite(HB2.IN4, LOW);
+  HB1.forward(speed);
+  HB2.backward(speed);
 }
 
 void right() {
   Serial.println("Moving right");
 
-  // H-BRIDGE 1
-  ledcWrite(HB1.ENA, speed);
-  digitalWrite(HB1.IN1, LOW);
-  digitalWrite(HB1.IN2, LOW);
-  ledcWrite(HB1.ENB, speed);
-  digitalWrite(HB1.IN3, LOW);
-  digitalWrite(HB1.IN4, HIGH);
-
-  // H-BRIDGE 2
-  ledcWrite(HB2.ENA, speed);
-  digitalWrite(HB2.IN1, LOW);
-  digitalWrite(HB2.IN2, HIGH);
-  ledcWrite(HB2.ENB, speed);
-  digitalWrite(HB2.IN3, LOW);
-  digitalWrite(HB2.IN4, HIGH);
+  HB1.backward(speed);
+  HB2.forward(speed);
 }
