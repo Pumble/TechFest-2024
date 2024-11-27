@@ -93,25 +93,25 @@ void loop() {
   delay(2000);
 
   stop();
-  delay(500);
+  delay(1000);
 
-  left();
-  delay(2000);
+  // left();
+  // delay(2000);
 
-  stop();
-  delay(500);
+  // stop();
+  // delay(500);
 
-  right();
-  delay(2000);
+  // right();
+  // delay(2000);
 
-  stop();
-  delay(500);
+  // stop();
+  // delay(500);
 
-  backwards();
-  delay(2000);
+  // backwards();
+  // delay(2000);
 
-  stop();
-  delay(500);
+  // stop();
+  // delay(500);
 }
 
 void L298N_setup() {

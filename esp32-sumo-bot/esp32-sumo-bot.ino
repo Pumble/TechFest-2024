@@ -1,3 +1,8 @@
+/**
+ * Referencias:
+ * https://randomnerdtutorials.com/esp32-dc-motor-l298n-motor-driver-control-speed-direction/
+ */
+
 /* ============================================================= INCLUDES ============================================================= */
 #include "BluetoothSerial.h"
 
@@ -7,10 +12,61 @@
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
+/* ============================================================= STRUCTS ============================================================= */
+struct L298N {
+  int ENA;
+  int IN1;
+  int IN2;
+  int ENB;
+  int IN3;
+  int IN4;
+
+  void setup(int freq, int resolution, int pwmChannel) {
+    pinMode(ENA, OUTPUT);
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
+    pinMode(ENB, OUTPUT);
+    pinMode(IN3, OUTPUT);
+    pinMode(IN4, OUTPUT);
+
+    // configure LEDC PWM
+    ledcAttachChannel(ENA, freq, resolution, pwmChannel);
+    ledcAttachChannel(ENB, freq, resolution, pwmChannel);
+  }
+
+  void forward(int speed) {
+    ledcWrite(ENA, speed);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    ledcWrite(ENB, speed);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+  }
+
+  void backward(int speed) {
+    ledcWrite(ENA, speed);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    ledcWrite(ENB, speed);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+  }
+
+  void stop() {
+    digitalWrite(ENA, LOW);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(ENB, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+  }
+};
+
 /* ============================================================= VARS ============================================================= */
 // ================================== Bluetooth VARS
-BluetoothSerial SerialBT;
+BluetoothSerial BT;
 #define BL_NAME "PUMBLEBOT"  // Bluetooth device name
+char incoming = 'S';
 
 // ================================== Serial VARS
 #define SERIAL_BAUDS 115200
@@ -25,175 +81,122 @@ BluetoothSerial SerialBT;
 #define SERVO_UP 'N'           // 78
 
 // ================================== L298N VARS
-#define IN1 27
-#define IN2 26
-#define ENA 14
+// H-BRIDGE 1 PINS
+#define HB1_ENA 15
+#define HB1_IN1 2
+#define HB1_IN2 4
+#define HB1_ENB 19
+#define HB1_IN3 5
+#define HB1_IN4 18
 
-#define IN3 4
-#define IN4 5
-#define ENB 7
+// H-BRIDGE 2 PINS
+#define HB2_ENA 25
+#define HB2_IN1 26
+#define HB2_IN2 27
+#define HB2_ENB 13
+#define HB2_IN3 14
+#define HB2_IN4 12
+
 int speed = 255;
-
-
 // Setting PWM properties
 const int freq = 30000;
 const int pwmChannel = 0;
 const int resolution = 8;
-int dutyCycle = 200;
 
-// ================================== BUILT-IN LED
-#define BLINK_INTERVAL 300
+L298N HB1 = { HB1_ENA, HB1_IN1, HB1_IN2, HB1_ENB, HB1_IN3, HB1_IN4 };
+L298N HB2 = { HB2_ENA, HB2_IN1, HB2_IN2, HB2_ENB, HB2_IN3, HB2_IN4 };
 
 /* ============================================================= SETUP ============================================================= */
 void setup() {
   Serial.begin(SERIAL_BAUDS);
   Serial.println("Starting setup...");
 
-  bluetooth_setup();
   L298N_setup();
+  bluetooth_setup();
 
   Serial.println("Setup completed...");
-}
-
-void bluetooth_setup() {
-  Serial.println("==> Bluetooth setup");
-
-  SerialBT.begin(BL_NAME);
-  // bool success = SerialBT.setPin("8462");  // Set Bluetooth PIN to "1234"
-  // if (success) {
-  //   Serial.println("Bluetooth PIN set successfully.");
-  // } else {
-  //   Serial.println("Failed to set Bluetooth PIN.");
-  // }
-
-  Serial.println("==> Bluetooth setup completed");
 }
 
 void L298N_setup() {
   Serial.println("==> L298N setup");
 
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(ENA, OUTPUT);
-
-  // configure LEDC PWM
-  ledcAttachChannel(ENA, freq, resolution, pwmChannel);
+  HB1.setup(freq, resolution, pwmChannel);
+  HB2.setup(freq, resolution, pwmChannel);
 
   Serial.println("==> L298N setup completed");
 }
 
+void bluetooth_setup() {
+  Serial.println("==> Bluetooth setup");
+
+  BT.begin(BL_NAME);  // Nombre de su dispositivo Bluetooth y en modo esclavo
+
+  Serial.println("==> Bluetooth setup completed");
+}
+
 /* ============================================================= LOOP ============================================================= */
 void loop() {
-  // if (Serial.available())
-  //   SerialBT.write(Serial.read());
-  // while (SerialBT.available()) {
-  //   int input = SerialBT.read();
-  //   Serial.write(input);
-  //   // https://randomnerdtutorials.com/esp32-dc-motor-l298n-motor-driver-control-speed-direction/
-  //   switch (input) {
-  //     case MOVEMENT_FORWARD:
-  //       forward();
-  //       break;
-  //     case MOVEMENT_BACKWARD:
-  //       backward();
-  //       break;
-  //     case MOVEMENT_STOP:
-  //       stop();
-  //       break;
+  if (BT.available())  // Compruebe si recibimos algo de Bluetooth
+  {
+    incoming = (char)BT.read();  // Lee lo que recibimos
+    Serial.print("Recibido: ");
+    Serial.println(incoming);
 
-
-  //       // case MOVEMENT_LEFT:
-  //       //   digitalWrite(LED_BUILTIN, LOW);
-  //       //   stop();
-  //       //   left();
-  //       //   break;
-  //       // case MOVEMENT_RIGHT:
-  //       //   digitalWrite(LED_BUILTIN, HIGH);
-  //       //   stop();
-  //       //   right();
-  //       //   break;
-  //       // case SERVO_DOWN:
-  //       //   leftServo.write(SERVO_DOWN_POSITION);
-  //       //   rightServo.write(SERVO_DOWN_POSITION);
-  //       //   break;
-  //       // case SERVO_UP:
-  //       //   leftServo.write(SERVO_HIGH_POSITION);
-  //       //   rightServo.write(SERVO_HIGH_POSITION);
-  //       //   break;
-  //   }
-  // }
-  // delay(20);
-
-
-  // Move the DC motor forward at maximum speed
-  Serial.println("Moving Forward");
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  delay(2000);
-
-  // Stop the DC motor
-  Serial.println("Motor stopped");
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  delay(1000);
-
-  // Move DC motor backwards at maximum speed
-  Serial.println("Moving Backwards");
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  delay(2000);
-
-  // Stop the DC motor
-  Serial.println("Motor stopped");
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  delay(1000);
-
-  // Move DC motor forward with increasing speed
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  while (dutyCycle <= 255) {
-    ledcWrite(ENA, dutyCycle);
-    Serial.print("Forward with duty cycle: ");
-    Serial.println(dutyCycle);
-    dutyCycle = dutyCycle + 5;
-    delay(500);
+    switch (incoming) {
+      case MOVEMENT_FORWARD:
+        stop();
+        forward();
+        break;
+      case MOVEMENT_BACKWARD:
+        stop();
+        backwards();
+        break;
+      case MOVEMENT_LEFT:
+        break;
+      case MOVEMENT_RIGHT:
+        break;
+      case MOVEMENT_STOP:
+        stop();
+        break;
+      default:
+        break;
+    }
   }
-  dutyCycle = 200;
 }
 
 /* ============================================================= MOVEMENT ============================================================= */
-void backward() {
-  stop();
+void forward() {
+  Serial.println("Moving forward");
 
-  // digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENA, speed);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENB, speed);
+  HB1.forward(speed);
+  HB2.forward(speed);
 }
 
-void forward() {
-  stop();
+void backwards() {
+  Serial.println("Moving backwards");
 
-  // digitalWrite(LED_BUILTIN, HIGH);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  analogWrite(ENA, speed);
-
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENB, speed);
+  HB1.backward(speed);
+  HB2.backward(speed);
 }
 
 void stop() {
-  // digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENA, 0);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENB, 0);
+  Serial.println("stoping");
+
+  // H-BRIDGE 1
+  HB1.stop();
+  HB2.stop();
+}
+
+void left() {
+  Serial.println("Moving left");
+
+  HB1.forward(speed);
+  HB2.backward(speed);
+}
+
+void right() {
+  Serial.println("Moving right");
+
+  HB1.backward(speed);
+  HB2.forward(speed);
 }
