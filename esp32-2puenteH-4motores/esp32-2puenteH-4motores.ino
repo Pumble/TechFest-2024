@@ -52,7 +52,7 @@ struct L298N {
   }
 };
 
-// H-BRIDGE 1 PINS
+// H-BRIDGE 1 PINS -- LEFT
 #define HB1_ENA 15
 #define HB1_IN1 2
 #define HB1_IN2 4
@@ -60,7 +60,7 @@ struct L298N {
 #define HB1_IN3 5
 #define HB1_IN4 18
 
-// H-BRIDGE 2 PINS
+// H-BRIDGE 2 PINS -- RIGHT
 #define HB2_ENA 25
 #define HB2_IN1 26
 #define HB2_IN2 27

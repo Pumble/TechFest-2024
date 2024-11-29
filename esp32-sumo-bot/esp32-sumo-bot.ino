@@ -152,8 +152,10 @@ void loop() {
         backwards();
         break;
       case MOVEMENT_LEFT:
+        left();
         break;
       case MOVEMENT_RIGHT:
+        right();
         break;
       case MOVEMENT_STOP:
         stop();
@@ -190,13 +192,13 @@ void stop() {
 void left() {
   Serial.println("Moving left");
 
-  HB1.forward(speed);
-  HB2.backward(speed);
+  HB1.backward(speed);
+  HB2.forward(speed);
 }
 
 void right() {
   Serial.println("Moving right");
 
-  HB1.backward(speed);
-  HB2.forward(speed);
+  HB1.forward(speed);
+  HB2.backward(speed);
 }
