@@ -1,6 +1,7 @@
 /**
  * Referencias:
  * https://randomnerdtutorials.com/esp32-dc-motor-l298n-motor-driver-control-speed-direction/
+ * https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
  */
 
 /* ============================================================= INCLUDES ============================================================= */
@@ -83,7 +84,7 @@ char incoming = 'S';
 // ================================== L298N VARS
 // H-BRIDGE 1 PINS
 #define HB1_ENA 15
-#define HB1_IN1 2
+#define HB1_IN1 21
 #define HB1_IN2 4
 #define HB1_ENB 19
 #define HB1_IN3 5
@@ -94,8 +95,8 @@ char incoming = 'S';
 #define HB2_IN1 26
 #define HB2_IN2 27
 #define HB2_ENB 13
-#define HB2_IN3 14
-#define HB2_IN4 12
+#define HB2_IN3 33
+#define HB2_IN4 32
 
 int speed = 255;
 // Setting PWM properties
