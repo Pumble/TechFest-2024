@@ -193,13 +193,13 @@ void stop() {
 void left() {
   Serial.println("Moving left");
 
-  HB1.backward(speed);
-  HB2.forward(speed);
+  HB1.backward(200);
+  HB2.forward(200);
 }
 
 void right() {
   Serial.println("Moving right");
 
-  HB1.forward(speed);
-  HB2.backward(speed);
+  HB1.forward(200);
+  HB2.backward(200);
 }
